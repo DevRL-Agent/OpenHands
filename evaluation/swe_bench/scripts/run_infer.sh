@@ -3,6 +3,13 @@ set -eo pipefail
 
 source "evaluation/utils/version_control.sh"
 
+# first check if parallel is installed
+if ! command -v parallel &> /dev/null
+then
+    echo "GNU Parallel could not be found, please install it (e.g. sudo apt-get install parallel)"
+    exit 1
+fi
+
 MODEL_CONFIG=$1
 COMMIT_HASH=$2
 AGENT=$3
@@ -78,6 +85,7 @@ run_inference() {
     local run_eval_note=$1
     echo "RUN_EVAL_NOTE: $run_eval_note"
 
+    # Write inputs to mr_inputs
     local command="poetry run python evaluation/swe_bench/run_infer.py \
         --agent-cls $AGENT \
         --llm-config $MODEL_CONFIG \
@@ -87,14 +95,64 @@ run_inference() {
         --eval-note $run_eval_note \
         --dataset $DATASET \
         --split $SPLIT"
-
     if [ -n "$EVAL_LIMIT" ]; then
         echo "EVAL_LIMIT: $EVAL_LIMIT"
         command="$command --eval-n-limit $EVAL_LIMIT"
     fi
 
-    # Run the command
-    eval $command
+    # Run the command and get cmd outputs in a variable
+    write_input_cmd="$command --map-reduce-write-inputs"
+    write_input_cmd_outputs=$(eval $write_input_cmd 2>&1)
+    echo ""
+    echo "------ Creating input files for map-reduce ------"
+    echo "$write_input_cmd_outputs"
+    echo "------------------------------------------------"
+    eval_output_dir=$(echo "$write_input_cmd_outputs" | grep "Using evaluation output directory:" | awk '{print $NF}')
+    mr_inputs_dir=$(realpath "$eval_output_dir/mr_inputs")
+    mkdir -p $mr_inputs_dir
+    mr_outputs_dir=$(realpath "$eval_output_dir/mr_outputs")
+    mkdir -p $mr_outputs_dir
+    echo "EVAL_OUTPUT_DIR: $eval_output_dir"
+    echo "MR_INPUTS_DIR: $mr_inputs_dir"
+    echo "MR_OUTPUTS_DIR: $mr_outputs_dir"
+    echo ""
+    echo "------ Checking number of input/output files ------"
+    input_files=$(ls $mr_inputs_dir)
+    output_files=$(ls $mr_outputs_dir)
+    num_input_files=$(echo "$input_files" | wc -l)
+    num_output_files=$(echo "$output_files" | wc -l)
+    echo "# input files: $num_input_files"
+    echo "# output files: $num_output_files"
+
+    # Get the input files to run (input files - output files)
+    input_files_to_run=$(comm -23 <(ls "$mr_inputs_dir" | sort) <(ls "$mr_outputs_dir" | sort))
+    echo "# tasks remaining: $(echo "$input_files_to_run" | wc -l)"
+    echo "------------------------------------------------"
+
+    # Infer commands
+    infer_cmd="$command --map-reduce-read-input-file"
+    # add mr_inputs_dir to each input file in input_files_to_run
+    input_filepaths=$(
+      echo "$input_files_to_run" | xargs -I {} echo "$mr_inputs_dir/{}"
+    )
+
+    echo "-------- Running inference in parallel --------"
+    # Create an array of infer commands
+    infer_logs_dir=$(realpath "$eval_output_dir/infer_logs")
+    mkdir -p $infer_logs_dir
+    infer_cmds=()
+    while IFS= read -r filepath; do
+        log_file="$infer_logs_dir/$(basename $filepath).log"
+        infer_cmds+=(
+          "echo 'Running $(basename $filepath)...'; $infer_cmd $filepath"
+        )
+    done <<< "$input_filepaths"
+
+    echo "Number of infer commands to run: ${#infer_cmds[@]}"
+    # Use GNU Parallel to run commands in parallel with progress bar
+    printf '%s\n' "${infer_cmds[@]}" | \
+    parallel --bar --ungroup --jobs $NUM_WORKERS
+
 }
 
 if [ -n "$N_RUNS" ]; then

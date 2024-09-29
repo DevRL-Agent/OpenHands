@@ -40,9 +40,9 @@ class EvalMetadata(BaseModel):
     def model_dump_json(self, *args, **kwargs):
         dumped = super().model_dump_json(*args, **kwargs)
         dumped_dict = json.loads(dumped)
-        logger.debug(f'Dumped metadata: {dumped_dict}')
         # avoid leaking sensitive information
         dumped_dict['llm_config'] = self.llm_config.to_safe_dict()
+        logger.debug(f'Dumped metadata: {dumped_dict}')
         return json.dumps(dumped_dict)
 
 
@@ -159,10 +159,6 @@ def make_metadata(
     )
 
     pathlib.Path(eval_output_path).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(os.path.join(eval_output_path, 'logs')).mkdir(
-        parents=True, exist_ok=True
-    )
-    logger.info(f'Using evaluation output directory: {eval_output_path}')
 
     metadata = EvalMetadata(
         agent_class=agent_class,
@@ -177,11 +173,6 @@ def make_metadata(
         data_split=data_split,
         details=details,
     )
-    metadata_json = metadata.model_dump_json()
-    logger.info(f'Metadata: {metadata_json}')
-    with open(os.path.join(eval_output_path, 'metadata.json'), 'w') as f:
-        f.write(metadata_json)
-
     return metadata
 
 
