@@ -42,6 +42,7 @@ from openhands.runtime.utils.request import (
     send_request,
 )
 from openhands.runtime.utils.runtime_build import build_runtime_image
+from openhands.utils.tenacity_stop import stop_if_should_exit
 
 
 class RemoteRuntime(Runtime):
@@ -191,7 +192,7 @@ class RemoteRuntime(Runtime):
         ), 'Runtime URL is not set. This should never happen.'
 
     @retry(
-        stop=stop_after_attempt(10),
+        stop=stop_after_attempt(10) | stop_if_should_exit(),
         wait=wait_exponential(multiplier=1, min=4, max=60),
         retry=retry_if_exception_type(RuntimeError),
         reraise=True,
@@ -259,7 +260,8 @@ class RemoteRuntime(Runtime):
                     'POST',
                     f'{self.runtime_url}/execute_action',
                     json=request_body,
-                    timeout=action.timeout,
+                    # wait a few more seconds to get the timeout error from client side
+                    timeout=action.timeout + 5,
                     retry_exceptions=list(
                         filter(lambda e: e != TimeoutError, DEFAULT_RETRY_EXCEPTIONS)
                     ),

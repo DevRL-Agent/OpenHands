@@ -36,6 +36,7 @@ from openhands.runtime.plugins import PluginRequirement
 from openhands.runtime.runtime import Runtime
 from openhands.runtime.utils import find_available_tcp_port
 from openhands.runtime.utils.runtime_build import build_runtime_image
+from openhands.utils.tenacity_stop import stop_if_should_exit
 
 
 class LogBuffer:
@@ -201,7 +202,7 @@ class EventStreamRuntime(Runtime):
             raise ex
 
     @tenacity.retry(
-        stop=tenacity.stop_after_attempt(5),
+        stop=tenacity.stop_after_attempt(5) | stop_if_should_exit(),
         wait=tenacity.wait_exponential(multiplier=1, min=4, max=60),
     )
     def _init_container(
@@ -322,7 +323,7 @@ class EventStreamRuntime(Runtime):
             )
 
     @tenacity.retry(
-        stop=tenacity.stop_after_attempt(10),
+        stop=tenacity.stop_after_delay(120) | stop_if_should_exit(),
         wait=tenacity.wait_exponential(multiplier=2, min=1, max=20),
         reraise=(ConnectionRefusedError,),
     )
@@ -417,7 +418,8 @@ class EventStreamRuntime(Runtime):
                 response = self.session.post(
                     f'{self.api_url}/execute_action',
                     json={'action': event_to_dict(action)},
-                    timeout=action.timeout,
+                    # wait a few more seconds to get the timeout error from client side
+                    timeout=action.timeout + 5,
                 )
                 if response.status_code == 200:
                     output = response.json()
