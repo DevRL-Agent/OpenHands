@@ -143,8 +143,8 @@ class RemoteRuntime(Runtime):
         start_request = {
             'image': self.container_image,
             'command': (
-                f'/openhands/miniforge3/bin/mamba run --no-capture-output -n base '
-                'PYTHONUNBUFFERED=1 poetry run '
+                f'/openhands/micromamba/bin/micromamba run -n openhands '
+                'poetry run '
                 f'python -u -m openhands.runtime.client.client {self.port} '
                 f'--working-dir {self.config.workspace_mount_path_in_sandbox} '
                 f'{plugin_arg}'
