@@ -125,10 +125,11 @@ def test_help_message(capsys):
         '--eval-map-reduce-read-input-file EVAL_MAP_REDUCE_READ_INPUT_FILE',
         '-l LLM_CONFIG, --llm-config LLM_CONFIG',
         '-n NAME, --name NAME',
+        '--config-file CONFIG_FILE',
     ]
 
     for element in expected_elements:
         assert element in help_output, f"Expected '{element}' to be in the help message"
 
     option_count = help_output.count('  -')
-    assert option_count == 16, f'Expected 16 options, found {option_count}'
+    assert option_count == 15, f'Expected 15 options, found {option_count}'
