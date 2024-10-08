@@ -2,7 +2,7 @@
 
 ## Contributors
 
-We would like to thank all the [contributors](https://github.com/All-Hands-AI/OpenHands/graphs/contributors) who have helped make OpenHands possible. We greatly appreciate your dedication and hard work.
+We would like to thank all the [contributors](https://github.com/All-Hands-AI/OpenHands/graphs/contributors) who have helped make OpenHands possible. Your dedication and hard work are greatly appreciated.
 
 ## Open Source Projects
 
@@ -10,7 +10,7 @@ OpenHands includes and adapts the following open source projects. We are gratefu
 
 #### [SWE Agent](https://github.com/princeton-nlp/swe-agent)
    - License: MIT License
-   - Description: Adapted for use in OpenHands's agent hub
+   - Description: Adapted for use in OpenHands's agenthub
 
 #### [Aider](https://github.com/paul-gauthier/aider)
    - License: Apache License 2.0

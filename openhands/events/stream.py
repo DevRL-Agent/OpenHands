@@ -141,12 +141,7 @@ class EventStream:
         for key in sorted(self._subscribers.keys()):
             stack = self._subscribers[key]
             callback = stack[-1]
-            asyncio.get_event_loop().run_in_executor(
-                None, self._callback, callback, event
-            )
-
-    def _callback(self, callback: Callable, event: Event):
-        asyncio.run(callback(event))
+            asyncio.create_task(callback(event))
 
     def filtered_events_by_source(self, source: EventSource):
         for event in self.get_events():

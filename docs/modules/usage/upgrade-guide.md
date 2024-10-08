@@ -1,3 +1,7 @@
+---
+sidebar_position: 8
+---
+
 # ⬆️ Upgrade Guide
 
 ## 0.8.0 (2024-07-13)

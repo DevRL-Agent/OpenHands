@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # 🤖 LLM Backends
 
 OpenHands can connect to any LLM supported by LiteLLM. However, it requires a powerful model to work.
@@ -34,7 +38,7 @@ The following can be set in the OpenHands UI through the Settings:
 * `Base URL` (through `Advanced Settings`)
 
 There are some settings that may be necessary for some LLMs/providers that cannot be set through the UI. Instead, these
-can be set through environment variables passed to the [docker run command](/modules/usage/installation)
+can be set through environment variables passed to the [docker run command](/modules/usage/getting-started#installation)
 using `-e`:
 
 * `LLM_API_VERSION`

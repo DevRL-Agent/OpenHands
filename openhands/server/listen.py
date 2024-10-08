@@ -417,9 +417,7 @@ async def list_files(request: Request, path: str | None = None):
             content={'error': 'Runtime not yet initialized'},
         )
     runtime: Runtime = request.state.session.agent_session.runtime
-    file_list = await asyncio.get_event_loop().run_in_executor(
-        None, runtime.list_files, path
-    )
+    file_list = runtime.list_files(path)
     if path:
         file_list = [os.path.join(path, f) for f in file_list]
 
@@ -440,7 +438,6 @@ async def list_files(request: Request, path: str | None = None):
         return file_list
 
     file_list = filter_for_gitignore(file_list, '')
-
     return file_list
 
 
@@ -468,7 +465,7 @@ async def select_file(file: str, request: Request):
 
     file = os.path.join(runtime.config.workspace_mount_path_in_sandbox, file)
     read_action = FileReadAction(file)
-    observation = await runtime.async_run_action(read_action)
+    observation = runtime.run_action(read_action)
 
     if isinstance(observation, FileReadObservation):
         content = observation.content
@@ -710,7 +707,7 @@ async def save_file(request: Request):
             runtime.config.workspace_mount_path_in_sandbox, file_path
         )
         write_action = FileWriteAction(file_path, content)
-        observation = await runtime.async_run_action(write_action)
+        observation = runtime.run_action(write_action)
 
         if isinstance(observation, FileWriteObservation):
             return JSONResponse(
