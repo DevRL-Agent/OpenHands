@@ -8139,7 +8139,7 @@ inference = ["anthropic", "flash_attn", "jedi", "openai", "peft", "protobuf", "s
 type = "git"
 url = "https://github.com/DevRL-Agent/SWE-Bench.git"
 reference = "HEAD"
-resolved_reference = "081c8bd56a9e808f9b68f823e33cae786d651a62"
+resolved_reference = "671c2652fe501a5b692cfdb4608f3fc670065f75"
 
 [[package]]
 name = "sympy"
