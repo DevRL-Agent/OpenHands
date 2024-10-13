@@ -8111,7 +8111,7 @@ files = [
 
 [[package]]
 name = "swebench"
-version = "2.0.12"
+version = "2.0.13"
 description = "The official SWE-bench package - a benchmark for evaluating LMs on software engineering"
 optional = false
 python-versions = ">=3.8"
@@ -8139,7 +8139,7 @@ inference = ["anthropic", "flash_attn", "jedi", "openai", "peft", "protobuf", "s
 type = "git"
 url = "https://github.com/DevRL-Agent/SWE-Bench.git"
 reference = "HEAD"
-resolved_reference = "671c2652fe501a5b692cfdb4608f3fc670065f75"
+resolved_reference = "c1f15036a6ee37f0915af8ab2da2d32114739570"
 
 [[package]]
 name = "sympy"
