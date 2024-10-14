@@ -100,7 +100,7 @@ def get_instance_docker_image(instance_id: str) -> str:
     image_name = image_name.replace(
         '__', '_s_'
     )  # to comply with docker image naming convention
-    return DOCKER_IMAGE_PREFIX.rstrip('/') + '/' + image_name
+    return (DOCKER_IMAGE_PREFIX.rstrip('/') + '/' + image_name).lower()
 
 
 def get_config(
@@ -225,6 +225,7 @@ def initialize_runtime(
         logger.info(obs, extra={'msg_type': 'OBSERVATION'})
         if isinstance(obs, ErrorObservation):
             logger.error(f'Failed to source ~/.bashrc: {obs.content}')
+
         assert_and_raise(
             obs.exit_code == 0, f'Failed to source ~/.bashrc: {obs.content}'
         )
