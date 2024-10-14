@@ -43,7 +43,7 @@ dataset = load_dataset(args.dataset, split=args.split)
 client = docker.from_env()
 
 pbar = tqdm(total=len(dataset))
-counter = {'success': 0, 'failed': 0}
+counter = {'success': 0, 'failed': 0, 'skipped': 0}
 
 failed_instances = []
 for instance in dataset:
@@ -52,28 +52,38 @@ for instance in dataset:
     target_image_name = get_instance_docker_image(instance_id)
 
     print('-' * 100)
-    # check if image exists
+    # Check if image exists locally and remotely
     try:
         image: docker.models.images.Image = client.images.get(image_name)
-        image.tag(target_image_name)
-        print(f'Image {image_name} -- tagging to --> {target_image_name}')
-        ret_push = client.images.push(target_image_name)
-        if isinstance(ret_push, str):
-            print(ret_push)
-        else:
-            for line in ret_push:
-                print(line)
-        print(f'Image {image_name} -- pushed to --> {target_image_name}')
-        counter['success'] += 1
+
+        # Check if image exists remotely
+        try:
+            client.images.get_registry_data(target_image_name)
+            print(f'Image {target_image_name} already exists remotely. Skipping.')
+            counter['skipped'] += 1
+        except docker.errors.APIError:
+            # Image doesn't exist remotely, proceed with tagging and pushing
+            image.tag(target_image_name)
+            print(f'Image {image_name} -- tagging to --> {target_image_name}')
+            ret_push = client.images.push(target_image_name)
+            if isinstance(ret_push, str):
+                print(ret_push)
+            else:
+                for line in ret_push:
+                    print(line)
+            print(f'Image {image_name} -- pushed to --> {target_image_name}')
+            counter['success'] += 1
     except docker.errors.ImageNotFound:
-        print(f'ERROR: Image {image_name} does not exist')
+        print(f'ERROR: Image {image_name} does not exist locally')
         counter['failed'] += 1
         failed_instances.append(instance_id)
     finally:
         pbar.update(1)
         pbar.set_postfix(counter)
 
-print(f'Success: {counter["success"]}, Failed: {counter["failed"]}')
+print(
+    f'Success: {counter["success"]}, Failed: {counter["failed"]}, Skipped: {counter["skipped"]}'
+)
 print('Failed instances IDs:')
 for failed_instance in failed_instances:
     print(failed_instance)
