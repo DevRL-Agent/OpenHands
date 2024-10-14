@@ -244,22 +244,30 @@ def process_instance(
                         with open(test_output_path, 'w') as f:
                             f.write(test_output)
 
-                        _report = get_eval_report(
-                            test_spec=test_spec,
-                            prediction={
-                                'model_patch': model_patch,
-                                'instance_id': instance_id,
-                            },
-                            log_path=test_output_path,
-                            include_tests_status=True,
-                        )
-                        report = _report[instance_id]
-                        logger.info(
-                            f"[{instance_id}] report: {report}\nResult for {instance_id}: resolved: {report['resolved']}"
-                        )
-                        instance['test_result']['report']['resolved'] = report[
-                            'resolved'
-                        ]
+                        try:
+                            _report = get_eval_report(
+                                test_spec=test_spec,
+                                prediction={
+                                    'model_patch': model_patch,
+                                    'instance_id': instance_id,
+                                },
+                                log_path=test_output_path,
+                                include_tests_status=True,
+                            )
+                            report = _report[instance_id]
+                            logger.info(
+                                f"[{instance_id}] report: {report}\nResult for {instance_id}: resolved: {report['resolved']}"
+                            )
+                            instance['test_result']['report']['resolved'] = report[
+                                'resolved'
+                            ]
+                        except Exception as e:
+                            logger.error(
+                                f'[{instance_id}] Error when grading answer:\n{e}.\n\n--- Output ---\n{test_output}\n--- End of Output ---',
+                                exc_info=True,
+                                stack_info=True,
+                            )
+                            instance['test_result']['report']['error_eval'] = True
             else:
                 logger.info(f'[{instance_id}] Error when starting eval:\n{obs.content}')
                 instance['test_result']['report']['error_eval'] = True
