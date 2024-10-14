@@ -121,8 +121,6 @@ def test_help_message(capsys):
         '--eval-num-workers EVAL_NUM_WORKERS',
         '--eval-note EVAL_NOTE',
         '--eval-ids EVAL_IDS',
-        '--eval-map-reduce-write-inputs',
-        '--eval-map-reduce-read-input-file EVAL_MAP_REDUCE_READ_INPUT_FILE',
         '-l LLM_CONFIG, --llm-config LLM_CONFIG',
         '-n NAME, --name NAME',
         '--config-file CONFIG_FILE',
