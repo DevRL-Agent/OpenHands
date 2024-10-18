@@ -443,6 +443,12 @@ def filter_dataset(dataset: pd.DataFrame, filter_column: str) -> pd.DataFrame:
                 subset = dataset[dataset[filter_column].isin(selected_ids)]
                 logger.info(f'Retained {subset.shape[0]} tasks after filtering')
                 return subset
+            if 'exclude_ids' in data:
+                exclude_ids = data['exclude_ids']
+                logger.info(f'Filtering {len(exclude_ids)} tasks from "exclude_ids"...')
+                subset = dataset[~dataset[filter_column].isin(exclude_ids)]
+                logger.info(f'Retained {subset.shape[0]} tasks after filtering')
+                return subset
     return dataset
 
 
